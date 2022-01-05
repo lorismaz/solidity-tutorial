@@ -10,7 +10,7 @@ export default function Home() {
   const [keyboards, setKeyboards] = useState([])
   const [newKeyboard, setNewKeyboard] = useState("")
   
-  const contractAddress = '0x9dFCbd5A044a02fe2e3A8DcDA89636f1465b93B7';
+  const contractAddress = '0xC4E1b2935358Bc2cda9497C262ec192986DF5Abd';
   const contractABI = abi.abi;
 
   const handleAccounts = (accounts) => {
