@@ -1,14 +1,17 @@
+const { ethereum, connectedAccount, connectAccount } = useMetaMaskAccount();
+
 import { ethers } from "ethers";
 import Router from "next/router";
 import { useState, useEffect } from "react";
 import PrimaryButton from "../components/primary-button";
 import Keyboard from "../components/keyboard";
 import abi from "../utils/Keyboards.json"
+import getKeyboardsContract from "../utils/getKeyboardsContract";
 
 export default function Create() {
 
-  const [ethereum, setEthereum] = useState(undefined);
-  const [connectedAccount, setConnectedAccount] = useState(undefined);
+  const keyboardsContract = getKeyboardsContract(ethereum);
+
   const [mining, setMining] = useState(false)
 
   const [keyboardKind, setKeyboardKind] = useState(0)
@@ -18,46 +21,14 @@ export default function Create() {
   const contractAddress = '0xc801BF1e87d0D5AC640cf0A95d0eF398E42ebF3e';
   const contractABI = abi.abi;
 
-  const handleAccounts = (accounts) => {
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      console.log('We have an authorized account: ', account);
-      setConnectedAccount(account);
-    } else {
-      console.log("No authorized accounts yet")
-    }
-  };
-
-  const getConnectedAccount = async () => {
-    if (window.ethereum) {
-      setEthereum(window.ethereum);
-    }
-
-    if (ethereum) {
-      const accounts = await ethereum.request({ method: 'eth_accounts' });
-      handleAccounts(accounts);
-    }
-  };
-  useEffect(() => getConnectedAccount(), []);
-
-  const connectAccount = async () => {
-    if (!ethereum) {
-      alert('MetaMask is required to connect an account');
-      return;
-    }
-
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    handleAccounts(accounts);
-  };
-
   const submitCreate = async (e) => {
     e.preventDefault();
-  
-    if (!ethereum) {
-      console.error('Ethereum object is required to create a keyboard');
+
+    if (!keyboardsContract) {
+      console.error('KeyboardsContract object is required to create a keyboard');
       return;
     }
-  
+
     setMining(true);
     try {
       const provider = new ethers.providers.Web3Provider(ethereum);
