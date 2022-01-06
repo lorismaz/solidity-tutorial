@@ -1,16 +1,14 @@
-const { ethereum, connectedAccount, connectAccount } = useMetaMaskAccount();
-
 import { ethers } from "ethers";
 import Router from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PrimaryButton from "../components/primary-button";
 import Keyboard from "../components/keyboard";
-import abi from "../utils/Keyboards.json"
 import getKeyboardsContract from "../utils/getKeyboardsContract";
+import { useMetaMaskAccount } from "../components/meta-mask-account-provider";
+
 
 export default function Create() {
-
-  const keyboardsContract = getKeyboardsContract(ethereum);
+  const { ethereum, connectedAccount, connectAccount } = useMetaMaskAccount();
 
   const [mining, setMining] = useState(false)
 
@@ -18,8 +16,7 @@ export default function Create() {
   const [isPBT, setIsPBT] = useState(false)
   const [filter, setFilter] = useState('')
 
-  const contractAddress = '0xc801BF1e87d0D5AC640cf0A95d0eF398E42ebF3e';
-  const contractABI = abi.abi;
+  const keyboardsContract = getKeyboardsContract(ethereum);
 
   const submitCreate = async (e) => {
     e.preventDefault();
@@ -31,16 +28,12 @@ export default function Create() {
 
     setMining(true);
     try {
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-      const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
-  
       const createTxn = await keyboardsContract.create(keyboardKind, isPBT, filter)
       console.log('Create transaction started...', createTxn.hash)
-  
+
       await createTxn.wait();
       console.log('Created keyboard!', createTxn.hash);
-  
+
       Router.push('/');
     } finally {
       setMining(false);

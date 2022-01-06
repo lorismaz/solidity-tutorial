@@ -1,17 +1,17 @@
-const { ethereum, connectedAccount, connectAccount } = useMetaMaskAccount();
-
 import { ethers } from "ethers";
 import { useState, useEffect } from "react";
+import { UserCircleIcon } from "@heroicons/react/solid";
+import { toast } from "react-hot-toast";
 import PrimaryButton from "../components/primary-button";
 import Keyboard from "../components/keyboard";
 import TipButton from "../components/tip-button";
-import abi from "../utils/Keyboards.json"
 import addressesEqual from "../utils/addressesEqual";
-import getKeyboardsContract from "../utils/getKeyboardsContract";
-import { toast } from "react-hot-toast"
-import { UserCircleIcon } from "@heroicons/react/solid"
+import getKeyboardsContract from "../utils/getKeyboardsContract"
+import { useMetaMaskAccount } from "../components/meta-mask-account-provider";
 
 export default function Home() {
+  const { ethereum, connectedAccount, connectAccount } = useMetaMaskAccount();
+
   const [keyboards, setKeyboards] = useState([])
   const [newKeyboard, setNewKeyboard] = useState("")
   const [keyboardsLoading, setKeyboardsLoading] = useState(false);
