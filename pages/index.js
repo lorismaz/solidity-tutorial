@@ -5,6 +5,8 @@ import Keyboard from "../components/keyboard";
 import TipButton from "../components/tip-button";
 import abi from "../utils/Keyboards.json"
 import addressesEqual from "../utils/addressesEqual";
+import getKeyboardsContract from "../utils/getKeyboardsContract";
+import { toast } from "react-hot-toast"
 import { UserCircleIcon } from "@heroicons/react/solid"
 
 export default function Home() {
@@ -14,8 +16,9 @@ export default function Home() {
   const [newKeyboard, setNewKeyboard] = useState("")
   const [keyboardsLoading, setKeyboardsLoading] = useState(false);
   
-  const contractAddress = '0x953869AaCcDA5Bef96e887e31f0ceEd0767Fd60f';
-  const contractABI = abi.abi;
+  const keyboardsContract = getKeyboardsContract(ethereum);
+  // const contractAddress = '0xc801BF1e87d0D5AC640cf0A95d0eF398E42ebF3e';
+  // const contractABI = abi.abi;
 
   const handleAccounts = (accounts) => {
     if (accounts.length > 0) {
@@ -40,23 +43,37 @@ export default function Home() {
   useEffect(() => getConnectedAccount(), []);
 
   const getKeyboards = async () => {
-    if (ethereum && connectedAccount) {
+    if (keyboardsContract && connectedAccount) {
       setKeyboardsLoading(true);
       try {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const keyboardsContract = new ethers.Contract(contractAddress, contractABI, signer);
-  
         const keyboards = await keyboardsContract.getKeyboards();
         console.log('Retrieved keyboards...', keyboards)
-        
+  
         setKeyboards(keyboards)
       } finally {
         setKeyboardsLoading(false);
       }
     }
   }
-  useEffect(() => getKeyboards(), [connectedAccount])
+  useEffect(() => getKeyboards(), [!!keyboardsContract, connectedAccount])
+
+  const addContractEventHandlers = () => {
+    if (keyboardsContract && connectedAccount) {
+      keyboardsContract.on('KeyboardCreated', async (keyboard) => {
+        if (connectedAccount && !addressesEqual(keyboard.owner, connectedAccount)) {
+          toast('Somebody created a new keyboard!', { id: JSON.stringify(keyboard) });
+        }
+        await getKeyboards();
+      })
+  
+      keyboardsContract.on('TipSent', (recipient, amount) => {
+        if (addressesEqual(recipient, connectedAccount)) {
+          toast(`You received a tip of ${ethers.utils.formatEther(amount)} eth!`, { id: recipient + amount });
+        }
+      })
+    }
+  }
+  useEffect(addContractEventHandlers, [!!keyboardsContract, connectedAccount]);
 
   const connectAccount = async () => {
     if (!ethereum) {
